@@ -98,25 +98,23 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            if (userDetails.getUsername() != null) {
-                existingUser.setUsername(userDetails.getUsername());
-            }
+            String username = userDetails.getUsername() != null ? userDetails.getUsername() : existingUser.getUsername();
+            String email = userDetails.getEmail() != null ? userDetails.getEmail() : existingUser.getEmail();
+            String password = userDetails.getPassword() != null ? userDetails.getPassword() : existingUser.getPassword();
 
-            if (userDetails.getEmail() != null) {
-                existingUser.setEmail(userDetails.getEmail());
-            }
+            // Veritabanındaki stored procedure'u çağır
+            userService.updateUser(userId, username, email, password);
 
-            if (userDetails.getPassword() != null) {
-                // Şifreyi hashle ve güncelle
-                String hashedPassword = passwordEncoder.encode(userDetails.getPassword());
-                existingUser.setPassword(hashedPassword);
-            }
-
-            existingUser.setUpdatedAt(LocalDateTime.now());
-            User updatedUser = userService.updateUser(userId, existingUser);
-
+            // Güncellenmiş kullanıcıyı geri döndür
+            User updatedUser = userService.getUserById(userId);
             return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            // Hata mesajını logla
+            System.err.println("Error occurred in updateUser: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         } catch (Exception e) {
+            // Beklenmeyen diğer hatalar için loglama
+            System.err.println("Unexpected error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
