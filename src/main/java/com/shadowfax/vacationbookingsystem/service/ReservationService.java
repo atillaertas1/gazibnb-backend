@@ -79,13 +79,11 @@ public class ReservationService {
         reservationRepository.deleteById(id);
     }
 
-    // Get reservations for a specific user
     public List<Reservation> getReservationsByUserId(Long userId) {
-        return reservationRepository.findByUserId(userId);
+        return reservationRepository.findReservationsByUserId(userId);
     }
 
-    // Get reservations for a specific listing
     public List<Reservation> getReservationsByListingId(Long listingId) {
-        return reservationRepository.findByListingId(listingId);
+        return reservationRepository.findReservationsByListingId(listingId);
     }
 }
