@@ -3,6 +3,8 @@ package com.shadowfax.vacationbookingsystem.service;
 import com.shadowfax.vacationbookingsystem.model.User;
 import com.shadowfax.vacationbookingsystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,11 @@ public class UserService {
 
     @Autowired
     private JWTService jwtService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
 
@@ -48,22 +55,19 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User updateUser(Long id, User userDetails) {
-        Optional<User> optionalUser = userRepository.findById(id); // Optional Class oluşturuyoruz null için
-        if(optionalUser.isPresent()){ //containerin var olup olmadığını kontrol ediyorus
-            User user = optionalUser.get();
-            user.setUsername(userDetails.getUsername());
-            user.setEmail(userDetails.getEmail());
-            user.setEmailVerified(userDetails.getEmailVerified());
-            user.setImage(userDetails.getImage());
-            user.setPassword(userDetails.getPassword());
-            user.setCreatedAt(userDetails.getCreatedAt());
-            user.setUpdatedAt(userDetails.getUpdatedAt());
-            user.setFavorites(userDetails.getFavorites());
-            return userRepository.save(user);
+    public void updateUser(Long userId, String username, String email, String password) {
+        try {
+            String hashedPassword = password != null ? bCryptPasswordEncoder.encode(password) : null;
+            userRepository.updateUserByProcedure(userId, username, email, hashedPassword);
+        } catch (DataAccessException e) {
+            System.err.println("Database error occurred: " + e.getMessage());
+            throw new RuntimeException("Database operation failed", e);
+        } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+            throw new RuntimeException("Failed to update user via stored procedure", e);
         }
-        return null; //null check için
     }
+
 
     public boolean deleteUser(Long id) {
         Optional<User> optionalUser = userRepository.findById(id);
