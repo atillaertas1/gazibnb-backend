@@ -80,10 +80,11 @@ public class ReservationService {
     }
 
     public List<Reservation> getReservationsByUserId(Long userId) {
-        return reservationRepository.findReservationsByUserId(userId);
+        return reservationRepository.findByUserId(userId);
     }
 
+    // Get reservations for a specific listing
     public List<Reservation> getReservationsByListingId(Long listingId) {
-        return reservationRepository.findReservationsByListingId(listingId);
+        return reservationRepository.findByListingId(listingId);
     }
 }
